@@ -129,10 +129,10 @@ void shift_map_display(const xy_pos& shift) {
 void status_message(const char* msg) {
   shared.tft->fillRect(
     0, displayconsts::display_height, displayconsts::display_width,
-    24, ILI9341_GREEN
+    24, ILI9341_BLACK
   );
 
-  shared.tft->setTextColor(ILI9341_MAGENTA);
+  shared.tft->setTextColor(ILI9341_WHITE);
   shared.tft->setCursor(5, displayconsts::display_height+4);
   shared.tft->setTextSize(2);
 
