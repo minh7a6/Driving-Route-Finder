@@ -1,0 +1,47 @@
+Names: Rutvik Patel and Kaden Dreger
+IDs  : 1530012, 1528632
+CMPUT 275 Winter 2019
+Assignment 2 Part 1: Driving Route Finder
+------------------------------------------------------------------
+Included files:
+    * server.cpp
+    * digraph.cpp
+    * digraph.h
+    * dijkstra.cpp
+    * dijkstra.h
+    * heap.h
+    * wdigraph.h
+    * Makefile
+    * README
+
+Makefile Targets:
+  * make server     : builds the project and generates the server executable
+  * make digraph.o  : compiles digraph.cpp into its respective object (.o) file
+  * make dijkstra.o : compiles dijkstra.cpp into its respective object (.o) file
+  * make server.o   : compiles server.cpp into its respective object (.o) file
+  * make clean      : removes the .o and executable files from the directory
+  * make help       : prints out information about the targets of the make file
+
+Running Instructions:
+    In order to correctly run the program, navigate to the correct directory in terminal with the source files and use the command 'make' to build the project. Then use the command './server' in order to run the server executable.
+
+How to use:
+    Once the program is run, it will wait for user input in one of the following ways:
+        R (start lat) (start lon) (end lat) (end lon) : This makes a request to the program and indicates the two points in which to find the shortest path
+
+    The program will then respond with the following:
+        N (num of waypoints) : the number of waypoints to get to the end point
+    The user needs to the type in the 'A' character, followed by the enter key to proceed to the following n lines:
+      For the n number of waypoints, the program will output the following line n times:
+        W (latitude) (longitude) : the nth waypoint's coordinates
+
+    The program will then print out the 'E' character to indicate the end of the request and program.
+
+Notes and Assumptions:
+    This program assumes that the user will follow the exact input guidelines as shown above. This program is also designed to only process one request, to process another request you must restart the program. The user must also have the file 'edmonton-roads-2.0.1.txt' in the same directory as the project files. This file must be a CSV file.
+
+Modified Code:
+  server.cpp:
+    * method for reading in files in the 'readGraph' function found from the site: cplusplus.com/doc/tutorial/files/
+  heap.h:
+    * the functions 'sift_up' and 'sift_down' are modified implementations from the site: https://www.techiedelight.com/min-heap-max-heap-implementation-c/
