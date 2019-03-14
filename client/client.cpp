@@ -131,8 +131,15 @@ void clientCom(lon_lat_32 start, lon_lat_32 end) {
             string temp = port.readline(0);
             boost::split(line, temp, boost::is_any_of(" "));
             if (line[0] == "N") {
-                shared.num_waypoints = line[1];
-                sendAck();
+                if (line[1] != "0") {
+                    shared.num_waypoints = static_cast<int16_t>(line[1]);
+                    sendAck();
+                } else {
+                    status_message("NO PATH");
+                    // add a delay of 2-3 seconds...
+
+                    break;  // need to wait for new points
+                }
             } else {
                 // send request again with the same point
                 continue;
@@ -145,8 +152,8 @@ void clientCom(lon_lat_32 start, lon_lat_32 end) {
             boost::split(waypoint, temp, boost::is_any_of(" "));
             if (waypoint[0] == "W") {
                 lon_lat_32 Point;
-                Point.lat = waypoint[1];
-                Point.lon = waypoint[2];
+                Point.lat = static_cast<int32_t>(waypoint[1]);
+                Point.lon = static_cast<int32_t>(waypoint[2]);
                 shared.waypoints[i] = Point;
                 sendAck();
             } else {

@@ -18,7 +18,10 @@ program will find the shortest path and print out the waypoints along the way.
 #include "dijkstra.h"
 #include "digraph.h"
 #include "wdigraph.h"
+#include "../client/serialport.h"
+#include <boost/algorithm/string.hpp>
 
+bool timeout = false;
 
 struct Point {
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -135,7 +138,7 @@ passed in lat and lon values.
 }
 
 
-void printWaypoints(unordered_map<int, Point>& p, unordered_map<int, PLI>& tree,
+bool printWaypoints(unordered_map<int, Point>& p, unordered_map<int, PLI>& tree,
                     int& startVert, int& endVert) {
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 The printWaypoints function takes the parameters:
@@ -149,26 +152,46 @@ It does not return any parameters.
 The point of this function is to print the number of waypoints, along with their
 lat and lon values, enroute to the end vertex.
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+    SerialPort port("/dev/ttyACM0");
     stack<int> route;
     int vert = endVert;  // starting at the end point
-    char ack;
+    string ack;
     while (route.top() != startVert) {  // while we have not reached the start
         route.push(vert);  // push the vertex onto the stack
         vert = tree[vert].second;  // set the vertex to the parent of current
     }
-    cout << "N " << route.size() << endl;  // print out number of waypoints
+    //cout << "N " << route.size() << endl;  // print out number of waypoints
+    port.writeline("N ");
+    port.writeline(static_cast<string>(route.size()));
+    port.writeline("\n");
     int size = route.size();
     for (int i = 0; i < size; i++) {
-        cin >> ack;  // receive acknowledgement
-        if (ack == 'A') {
+        //cin >> ack;  // receive acknowledgement
+        ack = port.readline(0);
+        if (ack == "A") {
             /*print out the waypoint coordinates*/
-            cout << "W " << p[route.top()].lat << " ";
-            cout << p[route.top()].lon << endl;
+            //cout << "W " << p[route.top()].lat << " ";
+            port.writeline("W ");
+            port.writeline(static_cast<string>(p[route.top()].lat));
+            port.writeline(" ");
+            port.writeline(static_cast<string>(p[route.top()].lon));
+            port.writeline("\n");
+            //cout << p[route.top()].lon << endl;
             route.pop();  // removing the element from the stack
+        } else {
+            // timeout
+            return true;
         }
     }
-    cin >> ack;  // receive acknowledgement
-    cout << "E" << endl;  // indicating end of request
+    //cin >> ack;  // receive acknowledgement
+    ack = port.readline(0);
+    if (ack == "A") {
+        port.writeline("E\n");
+    } else {
+        return true;
+    }
+    //cout << "E" << endl;  // indicating end of request
+    return false;  // no timeout
 }
 
 
@@ -180,22 +203,36 @@ along with handling some of the input and output functionality.
     WDigraph graph;  // creating instance of Wdigraph
     unordered_map<int, Point> points;
     readGraph("edmonton-roads-2.0.1.txt", graph, points);
-    char r;
-    cin >> r;  // read in R character
-    int startLat, startLon, endLat, endLon;
-    cin >> startLat >> startLon >> endLat >> endLon;  // read in the coordinates
-    int start = closestVert(startLat, startLon, points);  // map to vertex
-    int end = closestVert(endLat, endLon, points);  // map to vertex
-    unordered_map<int, PLI> heapTree;
-    dijkstra(graph, start, heapTree);
+    while (!timeout) {
+        // string splitting method found from: 
+        // geeksforgeeks.org/boostsplit-c-library/
+        vector<string> request;
+        //cin >> r;  // read in R character
+        string temp = port.readline(0);
+        boost::split(request, temp, boost::is_any_of(" "));
+        if (request[0] == "R") {
+            int startLat, startLon, endLat, endLon;
+            //cin >> startLat >> startLon >> endLat >> endLon;  // read in the coordinates
+            startLat = static_cast<int>(request[1]);
+            startLon = static_cast<int>(request[2]);
+            endLat = static_cast<int>(request[3]);
+            endLon = static_cast<int>(request[4]);
+            int start = closestVert(startLat, startLon, points);  // map to vertex
+            int end = closestVert(endLat, endLon, points);  // map to vertex
+            unordered_map<int, PLI> heapTree;
+            dijkstra(graph, start, heapTree);
 
-    if (heapTree.find(end) == heapTree.end()) {
-        /* handling the 0 case */
-        cout << "N 0" << endl;
-        cout << "E" << endl;
-    } else {
-        /* print out the waypoints enroute to the destination */
-        printWaypoints(points, heapTree, start, end);
+            if (heapTree.find(end) == heapTree.end()) {
+                /* handling the 0 case */
+                //cout << "N 0" << endl;
+                port.writeline("N 0\n");
+                // do we do an E????????
+                //cout << "E" << endl;
+            } else {
+                /* print out the waypoints enroute to the destination */
+                timeout = printWaypoints(points, heapTree, start, end);
+            }
+        }
     }
     return 0;
 }
