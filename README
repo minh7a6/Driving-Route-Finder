@@ -45,3 +45,7 @@ Modified Code:
     * method for reading in files in the 'readGraph' function found from the site: cplusplus.com/doc/tutorial/files/
   heap.h:
     * the functions 'sift_up' and 'sift_down' are modified implementations from the site: https://www.techiedelight.com/min-heap-max-heap-implementation-c/
+  map_drawing.cpp:
+    * we have changed the colour of the bar at the bottom of the display (line 132 in the status_message) function in order to be able to read it better
+  client.cpp:
+    * we have changed the read mode of the zoom in and zoom out buttons as the program was reading it as "always pushed" and it kept zooming in. Precisely the change can be found in the client.cpp file lines 62 and 63 in the function process_input

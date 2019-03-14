@@ -3,11 +3,15 @@
 #include <SD.h>
 #include "consts_and_types.h"
 #include "map_drawing.h"
-
+#include "serialport.h"
+//#include <bits/stdc++.h>
+#include <boost/algorithm/string.hpp>
 // the variables to be shared across the project, they are declared here!
 shared_vars shared;
 
 Adafruit_ILI9341 tft = Adafruit_ILI9341(clientpins::tft_cs, clientpins::tft_dc);
+
+SerialPort port("/dev/ttyACM0");
 
 void setup() {
   // initialize Arduino
@@ -59,8 +63,8 @@ void setup() {
 
 void process_input() {
   // read the zoom in and out buttons
-  shared.zoom_in_pushed = (digitalRead(clientpins::zoom_in_pin) == LOW);
-  shared.zoom_out_pushed = (digitalRead(clientpins::zoom_out_pin) == LOW);
+  shared.zoom_in_pushed = (digitalRead(clientpins::zoom_in_pin) == HIGH);
+  shared.zoom_out_pushed = (digitalRead(clientpins::zoom_out_pin) == HIGH);
 
   // read the joystick button
   shared.joy_button_pushed = (digitalRead(clientpins::joy_button_pin) == LOW);
@@ -90,6 +94,77 @@ void process_input() {
     }
   }
 }
+
+
+void sendRequest(lon_lat_32 start, lon_lat_32 end) {
+    port.writeline("R");
+    port.writeline(" ");
+    port.writeline(start.lat);
+    port.writeline(" ");
+    port.writeline(start.lon);
+    port.writeline(" ");
+    port.writeline(end.lat);
+    port.writeline(" ");
+    port.writeline(end.lon);
+    port.writeline("\n");
+}
+
+void sendAck() {
+    // send the A character followed by a newline
+    port.writeline("A\n");
+}
+
+
+void clientCom(lon_lat_32 start, lon_lat_32 end) {
+    status_message("Receiving path...");
+    while (true) {
+    // TODO: communicate with the server to get the waypoints
+
+        // send request
+        sendRequest(start, end);
+
+        // store path length in shared.num_waypoints
+        if (Serial.available()) {
+            // string splitting method found from: 
+            // geeksforgeeks.org/boostsplit-c-library/
+            vector<string> line;
+            string temp = port.readline(0);
+            boost::split(line, temp, boost::is_any_of(" "));
+            if (line[0] == "N") {
+                shared.num_waypoints = line[1];
+                sendAck();
+            } else {
+                // send request again with the same point
+                continue;
+            }
+        }
+        // store waypoints in shared.waypoints[]
+        for (int i = 0; i < shared.num_waypoints; i++) {
+            vector<string> waypoint;
+            string temp = port.readline(0);
+            boost::split(waypoint, temp, boost::is_any_of(" "));
+            if (waypoint[0] == "W") {
+                lon_lat_32 Point;
+                Point.lat = waypoint[1];
+                Point.lon = waypoint[2];
+                shared.waypoints[i] = Point;
+                sendAck();
+            } else {
+                // send request again with the same point
+                continue;
+            }
+        }
+
+        string endString;
+        endString = port.readline(0);
+        if (endString != "E") {
+            // send request again with the same point
+            continue;
+        }
+        break;
+    }
+}
+
 
 int main() {
   setup();
@@ -145,8 +220,7 @@ int main() {
         // and then communicate with the server to get the path
         end = get_cursor_lonlat();
 
-        // TODO: communicate with the server to get the waypoints
-
+        clientCom(start, end);
         // now we have stored the path length in
         // shared.num_waypoints and the waypoints themselves in
         // the shared.waypoints[] array, switch back to asking for the
