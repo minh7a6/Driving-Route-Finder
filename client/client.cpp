@@ -3,15 +3,16 @@
 #include <SD.h>
 #include "consts_and_types.h"
 #include "map_drawing.h"
-#include "serialport.h"
+//#include <vector>
+//#include "serialport.h"
 //#include <bits/stdc++.h>
-#include <boost/algorithm/string.hpp>
+//#include <boost/algorithm/string.hpp>
 // the variables to be shared across the project, they are declared here!
 shared_vars shared;
 
 Adafruit_ILI9341 tft = Adafruit_ILI9341(clientpins::tft_cs, clientpins::tft_dc);
 
-SerialPort port("/dev/ttyACM0");
+//SerialPort port("/dev/ttyACM0");
 
 void setup() {
   // initialize Arduino
@@ -57,6 +58,7 @@ void setup() {
   draw_map();
   draw_cursor();
 
+  Serial.flush();
   // initial status message
   status_message("FROM?");
 }
@@ -95,8 +97,39 @@ void process_input() {
   }
 }
 
+/** Writes an uint32_t to Serial3, starting from the least-significant
+ * and finishing with the most significant byte. 
+ */
+void ll_to_serial(ll num) {
+  Serial.write((char) (num >> 0));
+  Serial.write((char) (num >> 8));
+  Serial.write((char) (num >> 16));
+  Serial.write((char) (num >> 24));
+  Serial.write((char) (num >> 32));
+  Serial.write((char) (num >> 40));
+  Serial.write((char) (num >> 48));
+  Serial.write((char) (num >> 56));
+}
+
+
+/** Reads an uint32_t from Serial3, starting from the least-significant
+ * and finishing with the most significant byte. 
+ */
+ll ll_from_serial() {
+  ll num = 0;
+  num = num | ((ll) Serial.read()) << 0;
+  num = num | ((ll) Serial.read()) << 8;
+  num = num | ((ll) Serial.read()) << 16;
+  num = num | ((ll) Serial.read()) << 24;
+  num = num | ((ll) Serial.read()) << 32;
+  num = num | ((ll) Serial.read()) << 40;
+  num = num | ((ll) Serial.read()) << 48;
+  num = num | ((ll) Serial.read()) << 56;
+  return num;
+}
 
 void sendRequest(lon_lat_32 start, lon_lat_32 end) {
+  /*
     port.writeline("R");
     port.writeline(" ");
     port.writeline(start.lat);
@@ -107,11 +140,22 @@ void sendRequest(lon_lat_32 start, lon_lat_32 end) {
     port.writeline(" ");
     port.writeline(end.lon);
     port.writeline("\n");
+*/
+    Serial.print("R ");
+    Serial.print(start.lat);
+    Serial.print(" ");
+    Serial.print(start.lon);
+    Serial.print(" ");
+    Serial.print(end.lat);
+    Serial.print(" ");
+    Serial.print(end.lon);
+    Serial.print("\n");
 }
 
 void sendAck() {
     // send the A character followed by a newline
-    port.writeline("A\n");
+    //port.writeline("A\n");
+    Serial.print("A\n");
 }
 
 
@@ -122,21 +166,24 @@ void clientCom(lon_lat_32 start, lon_lat_32 end) {
 
         // send request
         sendRequest(start, end);
-
+        delay(10000);
         // store path length in shared.num_waypoints
         if (Serial.available()) {
             // string splitting method found from: 
             // geeksforgeeks.org/boostsplit-c-library/
-            vector<string> line;
-            string temp = port.readline(0);
-            boost::split(line, temp, boost::is_any_of(" "));
-            if (line[0] == "N") {
-                if (line[1] != "0") {
-                    shared.num_waypoints = static_cast<int16_t>(line[1]);
+            //char *line = new char[100];
+            char letter;
+            letter = Serial.read();
+            Serial.read();  // read in space
+            if (letter == 'N') {
+                ll num = ll_from_serial();
+                if (num != 0) {
+                    shared.num_waypoints = static_cast<int16_t>(num);
                     sendAck();
                 } else {
                     status_message("NO PATH");
                     // add a delay of 2-3 seconds...
+                    delay(3000);
 
                     break;  // need to wait for new points
                 }
@@ -144,16 +191,19 @@ void clientCom(lon_lat_32 start, lon_lat_32 end) {
                 // send request again with the same point
                 continue;
             }
+            //delete[] line;
         }
         // store waypoints in shared.waypoints[]
         for (int i = 0; i < shared.num_waypoints; i++) {
-            vector<string> waypoint;
-            string temp = port.readline(0);
-            boost::split(waypoint, temp, boost::is_any_of(" "));
-            if (waypoint[0] == "W") {
+            char letter = Serial.read();
+            Serial.read();
+            if (letter == 'W') {
+                ll lat = ll_from_serial();
+                Serial.read();
+                ll lon = ll_from_serial();
                 lon_lat_32 Point;
-                Point.lat = static_cast<int32_t>(waypoint[1]);
-                Point.lon = static_cast<int32_t>(waypoint[2]);
+                Point.lat = static_cast<int32_t>(lat);
+                Point.lon = static_cast<int32_t>(lon);
                 shared.waypoints[i] = Point;
                 sendAck();
             } else {
@@ -161,10 +211,9 @@ void clientCom(lon_lat_32 start, lon_lat_32 end) {
                 continue;
             }
         }
-
-        string endString;
-        endString = port.readline(0);
-        if (endString != "E") {
+        Serial.flush();
+        char endChar = Serial.read();
+        if (endChar != 'E') {
             // send request again with the same point
             continue;
         }

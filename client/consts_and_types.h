@@ -17,6 +17,7 @@
 #include <Arduino.h>
 #include <Adafruit_ILI9341.h>
 #include "lcd_image.h"
+//#include <string>
 
 // the name emphasizes the fact that lon is the first field
 struct lon_lat_32 {

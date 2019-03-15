@@ -3,6 +3,7 @@
 
 #include "consts_and_types.h"
 
+typedef long long ll;
 // conversion routines between lat and lon and map pixel coordinates
 int32_t x_to_longitude(int8_t map_num, int32_t map_x);
 int32_t y_to_latitude(int8_t map_num, int32_t map_y);

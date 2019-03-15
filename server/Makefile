@@ -7,14 +7,17 @@
 #  necessary to run dijkstra.cpp and server.cpp.
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 CC = g++ # compiler of choice
-OBJS = dijkstra.o server.o digraph.o # object files generated
+OBJS = dijkstra.o server.o digraph.o serialport.o # object files generated
 CFLAGS = -c -Wall -std=c++11 # compile flags
 LFLAGS = -static
 EXC = server # executable name
 
 # Builds the project, generating the server executable
-$(EXC): server.o digraph.o dijkstra.o
-	$(CC) server.o digraph.o dijkstra.o -o server $(LFLAGS)
+$(EXC): $(OBJS)
+	$(CC) $(OBJS) -o server $(LFLAGS)
+
+serialport.o: serialport.h serialport.cpp
+	$(CC) serialport.cpp -o serialport.o $(CFLAGS)
 
 # compiles digraph.cpp into its respective .o file
 digraph.o: digraph.cpp digraph.h
@@ -25,7 +28,7 @@ dijkstra.o: dijkstra.cpp dijkstra.h heap.h
 	$(CC) dijkstra.cpp -o dijkstra.o $(CFLAGS)
 
 # compiles server.cpp into its respective .o file
-server.o: server.cpp digraph.h wdigraph.h
+server.o: server.cpp digraph.h wdigraph.h serialport.h
 	$(CC) server.cpp -o server.o $(CFLAGS)
 
 # removes the .o and executable files from the directory
