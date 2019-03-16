@@ -158,17 +158,30 @@ void sendAck() {
     Serial.print("A\n");
 }
 
+bool checkTimeout(bool timeout, int time, int startTime) {
+    int endTime;
+    while (!Serial.available()) {
+        endTime = millis();
+        if (endTime-startTime >= time) {
+            timeout = true;
+            break;
+        }
+    }
+    return timeout;
+}
 
 void clientCom(lon_lat_32 start, lon_lat_32 end) {
     status_message("Receiving path...");
     while (true) {
+    bool timeout = false;
     // TODO: communicate with the server to get the waypoints
 
         // send request
         sendRequest(start, end);
-        delay(10000);
+        int startTime = millis();
         // store path length in shared.num_waypoints
-        if (Serial.available()) {
+        timeout = checkTimeout(timeout, 10, startTime);
+        if (Serial.available() && !timeout) {
             // string splitting method found from: 
             // geeksforgeeks.org/boostsplit-c-library/
             //char *line = new char[100];
@@ -184,40 +197,48 @@ void clientCom(lon_lat_32 start, lon_lat_32 end) {
                     status_message("NO PATH");
                     // add a delay of 2-3 seconds...
                     delay(3000);
-
                     break;  // need to wait for new points
                 }
             } else {
                 // send request again with the same point
-                continue;
+                timeout = true;
             }
-            //delete[] line;
-        }
-        // store waypoints in shared.waypoints[]
-        for (int i = 0; i < shared.num_waypoints; i++) {
-            char letter = Serial.read();
-            Serial.read();
-            if (letter == 'W') {
-                ll lat = ll_from_serial();
+            // store waypoints in shared.waypoints[]
+            for (int i = 0; i < shared.num_waypoints && !timeout; i++) {
+                startTime = millis();
+                timeout = checkTimeout(timeout, 1, startTime);
+                char letter = Serial.read();
                 Serial.read();
-                ll lon = ll_from_serial();
-                lon_lat_32 Point;
-                Point.lat = static_cast<int32_t>(lat);
-                Point.lon = static_cast<int32_t>(lon);
-                shared.waypoints[i] = Point;
-                sendAck();
-            } else {
-                // send request again with the same point
-                continue;
+                if (letter == 'W') {
+                    ll lat = ll_from_serial();
+                    Serial.read();
+                    ll lon = ll_from_serial();
+                    lon_lat_32 Point;
+                    Point.lat = static_cast<int32_t>(lat);
+                    Point.lon = static_cast<int32_t>(lon);
+                    shared.waypoints[i] = Point;
+                    sendAck();
+                } else {
+                    // send request again with the same point
+                    timeout = true;
+                }
+            }
+            // Serial.flush();
+            startTime = millis();
+            timeout = checkTimeout(timeout, 1, startTime);
+            if (Serial.available() && !timeout){
+                char endChar = Serial.read();
+                if (endChar != 'E' && !timeout) {
+                    // send request again with the same point
+                    timeout = true;
+                }
             }
         }
-        Serial.flush();
-        char endChar = Serial.read();
-        if (endChar != 'E') {
-            // send request again with the same point
+        if (timeout) {
             continue;
+        } else {
+            break;
         }
-        break;
     }
 }
 

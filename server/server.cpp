@@ -224,7 +224,7 @@ along with handling some of the input and output functionality.
             //cin >> r;  // read in R character
             string temp;
             do {
-                temp = port.readline(1);
+                temp = port.readline(0);
             } while((temp) == "");
             vector<string> request = split(temp, ' ');  // find citation later...
             cout << "got the input" << endl;
