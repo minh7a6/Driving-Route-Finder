@@ -167,29 +167,36 @@ lat and lon values, enroute to the end vertex.
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
     stack<int> route;
     int vert = endVert;  // starting at the end point
-    string ack;
+    string ack, temp;
     while (route.top() != startVert) {  // while we have not reached the start
         route.push(vert);  // push the vertex onto the stack
         vert = tree[vert].second;  // set the vertex to the parent of current
     }
     cout << "N " << route.size() << endl;  // print out number of waypoints
     port.writeline("N ");
-    port.writeline(to_string(route.size()));
-    port.writeline("\n");
+    temp = to_string(route.size());
+    //cout << "size being written: " << temp << endl;
+    port.writeline(temp);
+    port.writeline("\n");  // write line does not include new line character
     int size = route.size();
     for (int i = 0; i < size; i++) {
         //cin >> ack;  // receive acknowledgement
         ack = port.readline(1000);
-        if (ack == "A\n") {
+        cout << "ack received is: " << ack << "." << endl;
+        if (ack[0] == 'A') {
             cout << "PRINTING WAYPOINTS..." << endl;
             /*print out the waypoint coordinates*/
-            cout << "W " << p[route.top()].lat << " ";
+            cout << "W " << p[route.top()].lat << " " << p[route.top()].lon << endl;
             assert(port.writeline("W "));
-            assert(port.writeline(to_string(p[route.top()].lat)));
+            temp = to_string(p[route.top()].lat);
+            cout << "lat being written: " << temp << endl;
+            assert(port.writeline(temp));
             assert(port.writeline(" "));
-            assert(port.writeline(to_string(p[route.top()].lon)));
+            temp = to_string(p[route.top()].lon);
+            cout << "lon being written: " << temp << endl;
+            assert(port.writeline(temp));
             assert(port.writeline("\n"));
-            cout << p[route.top()].lon << endl;
+            //cout << p[route.top()].lon << endl;
             route.pop();  // removing the element from the stack
         } else {
             // timeout
@@ -199,7 +206,7 @@ lat and lon values, enroute to the end vertex.
     }
     //cin >> ack;  // receive acknowledgement
     ack = port.readline(1000);
-    if (ack == "A\n") {
+    if (ack[0] == 'A') {
         port.writeline("E\n");
     } else {
         return true;
@@ -245,7 +252,7 @@ along with handling some of the input and output functionality.
             cout << "finished" << endl;
             */
             do {
-                temp = port.readline(0);
+                temp = port.readline(1000);
                 //cout << "iteration: " << i << endl;
                 i++;
             } while(temp[0] != 'R');
@@ -255,6 +262,8 @@ along with handling some of the input and output functionality.
             if (request[0] == "R") {
                 cout << "reading coordinates..." << endl;
                 cout << endl;
+                cout << "request array: " << request[0] << " " << request[1] << " " << request[2] <<  " " << request[3];
+                cout << " " << request[4] << endl << endl;
                 ll startLat, startLon, endLat, endLon;
                 //cin >> startLat >> startLon >> endLat >> endLon;  // read in the coordinates
                 //cout << request[1] << endl;
@@ -265,7 +274,7 @@ along with handling some of the input and output functionality.
                 endLat = stoll(request[3]);
                 cout << "end lat: " << request[3] << endl;
                 endLon = stoll(request[4]);
-                cout << "end lon: " << request[4] << endl;
+                cout << "end lon: " << request[4] << endl << endl;;
                 int start = closestVert(startLat, startLon, points);  // map to vertex
                 int end = closestVert(endLat, endLon, points);  // map to vertex
                 unordered_map<int, PLI> heapTree;

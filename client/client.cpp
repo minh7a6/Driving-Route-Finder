@@ -168,7 +168,7 @@ void sendRequest(lon_lat_32 start, lon_lat_32 end) {
     port.writeline(end.lon);
     port.writeline("\n");
 */  
-    //Serial.flush();
+    Serial.flush();
     Serial.print("R ");
     Serial.print(start.lat);
     Serial.print(" ");
@@ -178,7 +178,7 @@ void sendRequest(lon_lat_32 start, lon_lat_32 end) {
     Serial.print(" ");
     Serial.print(end.lon);
     Serial.println();
-    //Serial.flush();
+    Serial.flush();
 }
 
 void sendAck() {
@@ -191,9 +191,11 @@ bool checkTimeout(bool timeout, int time, int startTime) {
     int endTime;
     while (!Serial.available()) {
         endTime = millis();
-        if (endTime-startTime >= time) {
+        if ((endTime-startTime) >= time) {
             timeout = true;
             break;
+        } else {
+            timeout = false;
         }
     }
     return timeout;
@@ -205,12 +207,17 @@ void clientCom(lon_lat_32 start, lon_lat_32 end) {
     bool timeout = false;
     // TODO: communicate with the server to get the waypoints
 
-        // send request
-        sendRequest(start, end);
-        //Serial.println("sent...");
         int startTime = millis();
+        //Serial.println(startTime);
+        while (!timeout) {
+            // send request
+            sendRequest(start, end);
+            timeout = checkTimeout(timeout, 10000, startTime);
+            Serial.flush();
+        }
+        //Serial.println("sent...");
         // store path length in shared.num_waypoints
-        timeout = checkTimeout(timeout, 10, startTime);
+        //timeout = checkTimeout(timeout, 10000, startTime);
         //delay(3000);
         if (Serial.available() && !timeout) {
             // string splitting method found from: 
@@ -221,8 +228,13 @@ void clientCom(lon_lat_32 start, lon_lat_32 end) {
             Serial.read();  // read in space
             if (letter == 'N') {
                 ll num = ll_from_serial();
+                Serial.println();
+                Serial.println();
+                Serial.println();
+                Serial.print("number received from server: ");
                 Serial.println((int)num);
-                delay(3000);
+                Serial.flush();
+                //delay(3000);
                 if (num > 0) {
                     shared.num_waypoints = static_cast<int16_t>(num);
                     sendAck();
@@ -230,6 +242,7 @@ void clientCom(lon_lat_32 start, lon_lat_32 end) {
                     status_message("NO PATH");
                     // add a delay of 2-3 seconds...
                     delay(3000);
+                    status_message("FROM?");
                     Serial.println("Broke out of loop");
                     timeout = false;
                     break;  // need to wait for new points
