@@ -176,8 +176,9 @@ void sendRequest(lon_lat_32 start, lon_lat_32 end) {
     Serial.print(" ");
     Serial.print(end.lat);
     Serial.print(" ");
-    Serial.println(end.lon);
-    Serial.flush();
+    Serial.print(end.lon);
+    Serial.println();
+    //Serial.flush();
 }
 
 void sendAck() {
@@ -210,7 +211,7 @@ void clientCom(lon_lat_32 start, lon_lat_32 end) {
         int startTime = millis();
         // store path length in shared.num_waypoints
         timeout = checkTimeout(timeout, 10, startTime);
-        delay(3000);
+        //delay(3000);
         if (Serial.available() && !timeout) {
             // string splitting method found from: 
             // geeksforgeeks.org/boostsplit-c-library/
@@ -220,13 +221,17 @@ void clientCom(lon_lat_32 start, lon_lat_32 end) {
             Serial.read();  // read in space
             if (letter == 'N') {
                 ll num = ll_from_serial();
-                if (num != 0) {
+                Serial.println((int)num);
+                delay(3000);
+                if (num > 0) {
                     shared.num_waypoints = static_cast<int16_t>(num);
                     sendAck();
                 } else {
                     status_message("NO PATH");
                     // add a delay of 2-3 seconds...
                     delay(3000);
+                    Serial.println("Broke out of loop");
+                    timeout = false;
                     break;  // need to wait for new points
                 }
             } else {
