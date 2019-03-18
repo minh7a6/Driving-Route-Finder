@@ -182,12 +182,12 @@ lat and lon values, enroute to the end vertex.
     for (int i = 0; i < size; i++) {
         //cin >> ack;  // receive acknowledgement
         do {
-            ack = port.readline(1);
+            ack = port.readline(1000);
             //cout << ack << "." << endl;
         } while(ack != "A\n");
         cout << "ack received!" << endl;
         if (ack[0] == 'A') {
-            cout << "PRINTING WAYPOINTS..." << endl;
+            cout << endl;
             /*print out the waypoint coordinates*/
             cout << "W " << p[route.top()].lat << " " << p[route.top()].lon << endl;
             assert(port.writeline("W "));
@@ -207,14 +207,14 @@ lat and lon values, enroute to the end vertex.
             return true;
         }
     }
-    //cin >> ack;  // receive acknowledgement
+    // receive acknowledgement
     ack = port.readline(1000);
     if (ack[0] == 'A') {
         port.writeline("E\n");
     } else {
         return true;
     }
-    //cout << "E" << endl;  // indicating end of request
+    // indicating end of request
     return false;  // no timeout
 }
 
@@ -240,20 +240,9 @@ along with handling some of the input and output functionality.
             cout << "------------------------------------------------" << endl;
             // string splitting method found from: 
             // geeksforgeeks.org/boostsplit-c-library/
-            //cin >> r;  // read in R character
+            // read in R character
             string temp;
             int i = 0;
-            /*
-            if ()
-            temp = port.readline(0);
-            cout << "first read done" << endl;
-            while (temp[0] != 'R') {
-                temp = port.readline(0);
-                //cout << temp << " "<< i << endl;
-                i++;
-            }
-            cout << "finished" << endl;
-            */
             do {
                 temp = port.readline(1000);
                 //cout << "iteration: " << i << endl;
@@ -268,7 +257,7 @@ along with handling some of the input and output functionality.
                 cout << "request array: " << request[0] << " " << request[1] << " " << request[2] <<  " " << request[3];
                 cout << " " << request[4] << endl << endl;
                 ll startLat, startLon, endLat, endLon;
-                //cin >> startLat >> startLon >> endLat >> endLon;  // read in the coordinates
+                // read in the coordinates
                 //cout << request[1] << endl;
                 startLat = stoll(request[1]);
                 cout << "start lat: " << request[1] << endl;

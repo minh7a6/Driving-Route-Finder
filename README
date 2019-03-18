@@ -1,41 +1,49 @@
 Names: Rutvik Patel and Kaden Dreger
 IDs  : 1530012, 1528632
 CMPUT 275 Winter 2019
-Assignment 2 Part 1: Driving Route Finder
+Assignment 2 Part 2: Driving Route Finder
 ------------------------------------------------------------------
 Included files:
-    * server.cpp
-    * digraph.cpp
-    * digraph.h
-    * dijkstra.cpp
-    * dijkstra.h
-    * heap.h
-    * wdigraph.h
-    * Makefile
-    * README
+    */server
+      * server.cpp
+      * digraph.cpp
+      * digraph.h
+      * dijkstra.cpp
+      * dijkstra.h
+      * heap.h
+      * wdigraph.h
+      * serialport.cpp
+      * serialport.h
+      * Makefile
+      * README
+    */client
+      * client.cpp
+      * consts_and_types.h
+      * instructions.txt
+      * lcd_image.cpp
+      * lcd_image.h
+      * map_drawing.cpp
+      * map_drawing.h
+      * Makefile
 
-Makefile Targets:
-  * make server     : builds the project and generates the server executable
-  * make digraph.o  : compiles digraph.cpp into its respective object (.o) file
-  * make dijkstra.o : compiles dijkstra.cpp into its respective object (.o) file
-  * make server.o   : compiles server.cpp into its respective object (.o) file
-  * make clean      : removes the .o and executable files from the directory
-  * make help       : prints out information about the targets of the make file
+Makefile (server) Targets:
+  * make server      : builds the project and generates the server executable
+  * make serialport.o: compiles serialport.cpp into its respective object (.o) file
+  * make digraph.o   : compiles digraph.cpp into its respective object (.o) file
+  * make dijkstra.o  : compiles dijkstra.cpp into its respective object (.o) file
+  * make server.o    : compiles server.cpp into its respective object (.o) file
+  * make clean       : removes the .o and executable files from the directory
+  * make help        : prints out information about the targets of the make file
 
 Running Instructions:
-    In order to correctly run the program, navigate to the correct directory in terminal with the source files and use the command 'make' to build the project. Then use the command './server' in order to run the server executable.
+    In order to correctly run the program, navigate to the correct directory in terminal with the source files. Proceed to navigate into the client directory, and use the command 'make upload' to upload the program to the Arduino. Then, proceed to navigate to the server directory and use the command 'make' to build the project. Then use the command './server' in order to run the server executable, and allow the server to come online.
 
 How to use:
-    Once the program is run, it will wait for user input in one of the following ways:
-        R (start lat) (start lon) (end lat) (end lon) : This makes a request to the program and indicates the two points in which to find the shortest path
-
-    The program will then respond with the following:
-        N (num of waypoints) : the number of waypoints to get to the end point
-    The user needs to the type in the 'A' character, followed by the enter key to proceed to the following n lines:
-      For the n number of waypoints, the program will output the following line n times:
-        W (latitude) (longitude) : the nth waypoint's coordinates
-
-    The program will then print out the 'E' character to indicate the end of the request and program.
+    Once the program is uploaded to the Arduino and the server is brought online,the following user actions are allowed:
+        * The user can use the joystick to move the cursor on the screen, and also press the zoom in/out buttons to modify the area on the map displayed on the screen.
+        * The user is prompted with the text "FROM?" at the bottom of the screen, indicating that the program is ready for the user to select their first point, click down on the joystick to select a point.
+        * The user will then be prompted with the text "TO?" at the bottom of the screen, indicating that the program is ready for the user to select their second point, similarly, click down on the joystick to select the point. 
+        * The request will then send to the server side, and a line will be displayed onto the screen, indicating the route to follow to get to your destination!
 
 Notes and Assumptions:
     This program assumes that the user will follow the exact input guidelines as shown above. This program is also designed to only process one request, to process another request you must restart the program. The user must also have the file 'edmonton-roads-2.0.1.txt' in the same directory as the project files. This file must be a CSV file.
@@ -46,6 +54,6 @@ Modified Code:
   heap.h:
     * the functions 'sift_up' and 'sift_down' are modified implementations from the site: https://www.techiedelight.com/min-heap-max-heap-implementation-c/
   map_drawing.cpp:
-    * we have changed the colour of the bar at the bottom of the display (line 132 in the status_message) function in order to be able to read it better
+    * we have changed the colour of the bar at the bottom of the display (line 132 in the status_message) function in order to achieve better readability.
   client.cpp:
     * we have changed the read mode of the zoom in and zoom out buttons as the program was reading it as "always pushed" and it kept zooming in. Precisely the change can be found in the client.cpp file lines 62 and 63 in the function process_input
