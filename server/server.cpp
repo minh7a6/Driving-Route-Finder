@@ -172,6 +172,10 @@ lat and lon values, enroute to the end vertex.
         route.push(vert);  // push the vertex onto the stack
         vert = tree[vert].second;  // set the vertex to the parent of current
     }
+    if (route.size() > 500) {
+        port.writeline("N 0\n");
+        return false;
+    }
     cout << "N " << route.size() << endl;  // print out number of waypoints
     port.writeline("N ");
     temp = to_string(route.size());
@@ -183,6 +187,9 @@ lat and lon values, enroute to the end vertex.
         //cin >> ack;  // receive acknowledgement
         do {
             ack = port.readline(1000);
+            if (ack == "") {
+                return true;
+            }
             //cout << ack << "." << endl;
         } while(ack != "A\n");
         cout << "ack received!" << endl;
@@ -209,6 +216,9 @@ lat and lon values, enroute to the end vertex.
     }
     // receive acknowledgement
     ack = port.readline(1000);
+    if (ack == "") {
+        return true;
+    }
     if (ack[0] == 'A') {
         port.writeline("E\n");
     } else {
@@ -244,7 +254,12 @@ along with handling some of the input and output functionality.
             string temp;
             int i = 0;
             do {
-                temp = port.readline(1000);
+                temp = port.readline(0);
+                /*
+                if(temp == "") {
+                    timeout = true;
+                }
+                */
                 //cout << "iteration: " << i << endl;
                 i++;
             } while(temp[0] != 'R');
@@ -282,7 +297,7 @@ along with handling some of the input and output functionality.
                     /* print out the waypoints enroute to the destination */
                     timeout = printWaypoints(points, heapTree, start, end);
                     cout << "sent waypoints to client" << endl << endl;
-                    break;
+                    //break;
                 }
             }
         }

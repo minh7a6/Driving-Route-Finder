@@ -117,9 +117,11 @@ void drawWaypoints() {
         x2 = lon_to_x(shared.waypoints[i + 1].lat, mapdata::map_box[num], mapdata::map_x_limit[num]);
         y1 = lat_to_y(shared.waypoints[i].lon, mapdata::map_box[num], mapdata::map_y_limit[num]);
         y2 = lat_to_y(shared.waypoints[i + 1].lon, mapdata::map_box[num], mapdata::map_y_limit[num]);
-        shared.tft->drawLine(x1, y1, x2, y2, ILI9341_GREEN);
-        shared.tft->drawLine(x1 -1, y1+1, x2 - 1, y2 + 1, ILI9341_GREEN);
-        shared.tft->drawLine(x1 + 1, y1 - 1, x2 + 1, y2 - 1, ILI9341_GREEN);
+        //status_message(char(x1));
+        delay(1000);
+        shared.tft->drawLine(x1, y1, x2, y2, ILI9341_BLACK);
+        shared.tft->drawLine(x1 -1, y1+1, x2 - 1, y2 + 1, ILI9341_BLACK);
+        shared.tft->drawLine(x1 + 1, y1 - 1, x2 + 1, y2 - 1, ILI9341_BLACK);
 
     }
     //draw_map();
@@ -275,17 +277,19 @@ void clientCom(lon_lat_32 start, lon_lat_32 end) {
                 }
             }
         }
-        status_message("drawing line.");
+        //status_message("drawing line.");
         if (timeout) {
             status_message("TIMEOUT DAWG");
             delay(5000);
-            continue;
+            break;
+            //continue;
         } else {
             status_message("drawing line");
             draw = true;
             break;
         }
     }
+    status_message("FROM?");
 }
 
 
@@ -319,10 +323,16 @@ int main() {
     if (shared.zoom_in_pushed) {
       zoom_map(1);
       shared.redraw_map = 1;
+      if (draw) {
+        drawWaypoints();
+      }
     }
     else if (shared.zoom_out_pushed) {
       zoom_map(-1);
       shared.redraw_map = 1;
+      if (draw) {
+        drawWaypoints();
+      }
     }
 
     // if the joystick button was clicked
@@ -345,6 +355,12 @@ int main() {
         end = get_cursor_lonlat();
 
         clientCom(start, end);
+
+        if (draw) {
+        status_message("drawing...");
+        drawWaypoints();
+        }
+        draw = false;
         // now we have stored the path length in
         // shared.num_waypoints and the waypoints themselves in
         // the shared.waypoints[] array, switch back to asking for the
@@ -354,6 +370,7 @@ int main() {
         delay(500);
         // wait until the joystick button is no longer pushed
         while (digitalRead(clientpins::joy_button_pin) == LOW) {}
+
       }
     }
 
@@ -370,6 +387,7 @@ int main() {
       draw_map();
       draw_cursor();
       if (draw) {
+        status_message("drawing...");
         drawWaypoints();
       }
       draw = false;
