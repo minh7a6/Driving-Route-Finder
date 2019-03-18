@@ -181,10 +181,13 @@ lat and lon values, enroute to the end vertex.
     int size = route.size();
     for (int i = 0; i < size; i++) {
         //cin >> ack;  // receive acknowledgement
-        ack = port.readline(1000);
-        cout << "ack received is: " << ack << "." << endl;
+        do {
+            ack = port.readline(1000);
+            //cout << ack << "." << endl;
+        } while(ack != "A\n");
+        cout << "ack received!" << endl;
         if (ack[0] == 'A') {
-            cout << "PRINTING WAYPOINTS..." << endl;
+            cout << endl;
             /*print out the waypoint coordinates*/
             cout << "W " << p[route.top()].lat << " " << p[route.top()].lon << endl;
             assert(port.writeline("W "));
