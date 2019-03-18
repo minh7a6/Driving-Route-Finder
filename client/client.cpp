@@ -12,13 +12,6 @@ Adafruit_ILI9341 tft = Adafruit_ILI9341(clientpins::tft_cs, clientpins::tft_dc);
 
 bool draw = false;
 
-// max size of buffer, including null terminator
-const uint32_t buf_size = 512;
-// current number of chars in buffer, not counting null terminator
-uint32_t buf_len = 0;
-
-// input buffer
-char* buff = (char *)malloc(buf_size);
 
 void setup() {
   // initialize Arduino
@@ -67,10 +60,6 @@ void setup() {
   Serial.flush();
   // initial status message
   status_message("FROM?");
-
-  // set up buffer as empty string
-    buf_len = 0;
-    buff[buf_len] = 0;
 }
 
 void process_input() {
