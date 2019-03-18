@@ -117,12 +117,10 @@ void drawWaypoints() {
         x2 = lon_to_x(shared.waypoints[i + 1].lat, mapdata::map_box[num], mapdata::map_x_limit[num]);
         y1 = lat_to_y(shared.waypoints[i].lon, mapdata::map_box[num], mapdata::map_y_limit[num]);
         y2 = lat_to_y(shared.waypoints[i + 1].lon, mapdata::map_box[num], mapdata::map_y_limit[num]);
-        //status_message(char(x1));
-        delay(1000);
         shared.tft->drawLine(x1, y1, x2, y2, ILI9341_BLACK);
         shared.tft->drawLine(x1 -1, y1+1, x2 - 1, y2 + 1, ILI9341_BLACK);
         shared.tft->drawLine(x1 + 1, y1 - 1, x2 + 1, y2 - 1, ILI9341_BLACK);
-
+        status_message("Draw 1");
     }
     //draw_map();
     //draw_cursor();
@@ -132,17 +130,20 @@ void drawWaypoints() {
 /** Reads an uint32_t from Serial3, starting from the least-significant
  * and finishing with the most significant byte. 
  */
-ull ll_from_serial() {
-  ull num = 0;
-  num = num | ((ull) Serial.read()) << 0;
-  num = num | ((ull) Serial.read()) << 8;
-  num = num | ((ull) Serial.read()) << 16;
-  num = num | ((ull) Serial.read()) << 24;  // 32 bits
-  num = num | ((ull) Serial.read()) << 32;
-  num = num | ((ull) Serial.read()) << 40;
-  num = num | ((ull) Serial.read()) << 48;
-  num = num | ((ull) Serial.read()) << 56;  // 64 bits = ll
-  return num;
+String read_num() {
+  String word = "";
+  char byte;
+
+  while(true) {
+    if (Serial.available()) {
+        byte = Serial.read();
+        if (byte != '\n') {
+            word += byte;
+        } else {
+            return word;
+        }
+    }
+  }
 }
 
 
@@ -190,8 +191,6 @@ bool checkTimeout(bool timeout, int time, int startTime) {
         if ((endTime-startTime) >= time) {
             timeout = true;
             break;
-        } else {
-            timeout = false;
         }
     }
     return timeout;
@@ -208,27 +207,22 @@ void clientCom(lon_lat_32 start, lon_lat_32 end) {
             // send request
             sendRequest(start, end);
             timeout = checkTimeout(timeout, 10000, startTime);
-            Serial.flush();
+            //Serial.flush();
         }
         // store path length in shared.num_waypoints
         if (Serial.available() && !timeout) {
-            status_message("inside loop");
             // string splitting method found from: 
             // geeksforgeeks.org/boostsplit-c-library/
             char letter;
             letter = Serial.read();
             Serial.read();  // read in space
             if (letter == 'N') {
-                ull num = ll_from_serial();
-                Serial.println();
-                Serial.println();
-                Serial.println();
-                Serial.print("number received from server: ");
-                Serial.println((int)num);
-                Serial.flush();
-                //delay(3000);
-                if (num > 0) {
-                    shared.num_waypoints = static_cast<int16_t>(num);
+                // reading in the number of waypoints
+                String num = read_num();
+                // default num of points
+                shared.num_waypoints = 0;
+                if (num.toInt() > 0) {
+                    shared.num_waypoints = num.toInt();
                     sendAck();
                     status_message("ACK sent");
                 } else {
@@ -236,23 +230,25 @@ void clientCom(lon_lat_32 start, lon_lat_32 end) {
                     // add a delay of 2-3 seconds...
                     delay(3000);
                     status_message("FROM?");
-                    Serial.println("Broke out of loop");
-                    timeout = false;
                     break;  // need to wait for new points
                 }
             } else {
                 // send request again with the same point
-                status_message("TIMEOUT");
+                status_message("TIMEOUT IN N");
                 delay(1000);
                 timeout = true;
             }
 
-            status_message("got here");
             // store waypoints in shared.waypoints[]
             for (int i = 0; i < shared.num_waypoints && !timeout; i++) {
                 startTime = millis();
-                timeout = checkTimeout(timeout, 1000, startTime);
                 String letter = readWaypoint(1000);
+                if (letter == "") {
+                  status_message("TIMEOUT IN LOOP 1");
+                  delay(3000);
+                  timeout = true;
+
+                }
                 if (letter == "W") {
                     lon_lat_32 point;
                     point.lat = (int32_t)readWaypoint(1000).toInt();
@@ -261,30 +257,32 @@ void clientCom(lon_lat_32 start, lon_lat_32 end) {
                     status_message("got a waypoint");
                     sendAck();
                 } else {
-                    status_message("timeout");
+                    status_message("TIMEOUT IN LOOP 2");
+                    delay(3000);
                     timeout = true;
                 }
             }
-            status_message("looking for end");
-            // Serial.flush();
             startTime = millis();
             timeout = checkTimeout(timeout, 1, startTime);
             if (Serial.available() && !timeout){
                 char endChar = Serial.read();
-                if (endChar != 'E' && !timeout) {
+                if (endChar != 'E') {
                     // send request again with the same point
+                    status_message("TIMEOUT IN E");
+                    delay(3000);
                     timeout = true;
                 }
             }
         }
-        //status_message("drawing line.");
         if (timeout) {
-            status_message("TIMEOUT DAWG");
+            status_message("PROGRAM TIMEOUT");
             delay(5000);
-            break;
-            //continue;
+            //draw = true;
+            //break;
+            Serial.flush();
+            continue;
         } else {
-            status_message("drawing line");
+            status_message("GOT ALL WAYPOINTS");
             draw = true;
             break;
         }
@@ -357,9 +355,10 @@ int main() {
         clientCom(start, end);
 
         if (draw) {
-        status_message("drawing...");
-        drawWaypoints();
+          status_message("drawing...");
+          drawWaypoints();
         }
+        status_message("DONE DRAWING");
         draw = false;
         // now we have stored the path length in
         // shared.num_waypoints and the waypoints themselves in
@@ -386,12 +385,13 @@ int main() {
       // redraw the map and cursor
       draw_map();
       draw_cursor();
+      /*
       if (draw) {
         status_message("drawing...");
         drawWaypoints();
       }
       draw = false;
-
+      */
       // TODO: draw the route if there is one
     }
   }
