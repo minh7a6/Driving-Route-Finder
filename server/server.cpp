@@ -202,7 +202,6 @@ lat and lon values, enroute to the end vertex.
             cout << "lon being written: " << temp << endl;
             assert(port.writeline(temp));
             assert(port.writeline("\n"));
-            //cout << p[route.top()].lon << endl;
             route.pop();  // removing the element from the stack
         } else {
             // timeout

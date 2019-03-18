@@ -120,10 +120,7 @@ void drawWaypoints() {
         shared.tft->drawLine(x1, y1, x2, y2, ILI9341_BLACK);
         shared.tft->drawLine(x1 -1, y1+1, x2 - 1, y2 + 1, ILI9341_BLACK);
         shared.tft->drawLine(x1 + 1, y1 - 1, x2 + 1, y2 - 1, ILI9341_BLACK);
-        status_message("Draw 1");
     }
-    //draw_map();
-    //draw_cursor();
 }
 
 
@@ -235,12 +232,12 @@ void clientCom(lon_lat_32 start, lon_lat_32 end) {
             } else {
                 // send request again with the same point
                 status_message("TIMEOUT IN N");
-                delay(1000);
+                delay(3000);
                 timeout = true;
             }
 
             // store waypoints in shared.waypoints[]
-            for (int i = 0; i < shared.num_waypoints && !timeout; i++) {
+            for (int i = 0; (i < shared.num_waypoints) && !timeout; i++) {
                 startTime = millis();
                 String letter = readWaypoint(1000);
                 if (letter == "") {
@@ -263,7 +260,11 @@ void clientCom(lon_lat_32 start, lon_lat_32 end) {
                 }
             }
             startTime = millis();
-            timeout = checkTimeout(timeout, 1, startTime);
+            timeout = checkTimeout(timeout, 1000, startTime);
+            if (timeout) {
+              status_message("TIMEOUT BEFORE E");
+              delay(3000);
+            }
             if (Serial.available() && !timeout){
                 char endChar = Serial.read();
                 if (endChar != 'E') {
@@ -359,6 +360,8 @@ int main() {
           drawWaypoints();
         }
         status_message("DONE DRAWING");
+        delay(3000);
+        status_message("FROM?");
         draw = false;
         // now we have stored the path length in
         // shared.num_waypoints and the waypoints themselves in
