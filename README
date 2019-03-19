@@ -23,8 +23,44 @@ Included files:
       * lcd_image.h
       * map_drawing.cpp
       * map_drawing.h
+      * circuit-wiring.txt
       * Makefile
     * README
+
+Wiring Instructions:
+  The wiring instructions can be found within the circuit-wiring.txt, but will also be iterated here:
+      TFT Display:
+
+              The display pins are numbered left to right in this document when they are being viewed
+              with their labels showing rightside up. Note you do not require the touchscreen for this assignment,
+              so it is probably a lot easier to not wire the Y+/X+/Y-/X- pins.
+
+              Display Pin     Arduino Mega Pin
+              1 GND           BB GND bus
+              2 Vin           BB Vcc (+ive) bus
+
+              4 CLK           Pin 52
+              5 MISO          Pin 50
+              6 MOSI          Pin 51
+              7 CS            Pin 10
+              8 D/C           Pin 9
+
+              19 CCS          Pin 6
+
+          Zoom in and out buttons:
+
+              Button          Arduino Mega Pin
+              Zoom In         Pin 2
+              Zoom Out        Pin 3
+
+          Joystick connections:
+
+              Joystick Pin    Arduino Mega Pin
+              +5v             Vcc
+              GND             GND
+              VRx             Analog 1
+              VRy             Analog 0
+              SW              Pin 8
 
 Makefile (server) Targets:
   * make server      : builds the project and generates the server executable
@@ -57,3 +93,4 @@ Modified Code:
     * we have changed the colour of the bar at the bottom of the display (line 132 in the status_message) function in order to achieve better readability.
   client.cpp:
     * we have changed the read mode of the zoom in and zoom out buttons as the program was reading it as "always pushed" and it kept zooming in. Precisely the change can be found in the client.cpp file lines 62 and 63 in the function process_input
+    * in the setup function, we added a Serial.flush() to flush out any leftover bits.
