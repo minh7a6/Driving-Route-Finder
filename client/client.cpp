@@ -245,6 +245,18 @@ The point of this function is to send an acknowledgement to the server.
 }
 
 bool checkTimeout(bool timeout, uint32_t time, uint32_t startTime) {
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+The checkTimeout function takes the parameters.
+    timeout: the timeout boolean
+    time: the time for timeout
+    startTime: the starting time
+
+It returns the parameters:
+  timeout: the timeout boolean
+
+The point of this function is to determine if a timeout occured since the
+given startTime. If so timeout is set to true and returned.
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
     uint32_t endTime;
     while (!Serial.available()) {
         endTime = millis();

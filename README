@@ -15,6 +15,7 @@ Included files:
       * serialport.cpp
       * serialport.h
       * Makefile
+      * edmonton-roads-2.0.1.txt
     */client
       * client.cpp
       * consts_and_types.h

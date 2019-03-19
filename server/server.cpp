@@ -196,7 +196,6 @@ lat and lon values, enroute to the end vertex.
     for (int i = 0; i < size; i++) {
         // receive acknowledgement
         ack = port.readline(1000);
-
         cout << "ack received!" << endl;
         if (ack[0] == 'A') {
             cout << endl;
