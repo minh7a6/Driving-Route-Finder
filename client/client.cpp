@@ -285,12 +285,13 @@ void clientCom(lon_lat_32 start, lon_lat_32 end) {
 
                 }
                 if (letter == "W") {
+                    sendAck();
                     lon_lat_32 point;
                     point.lat = (int32_t)readWaypoint(1000).toInt();
                     point.lon = (int32_t)readWaypoint(1000).toInt();
                     shared.waypoints[i] = point;
                     status_message("got a waypoint");
-                    sendAck();
+                    //sendAck();
                 } else {
                     status_message("TIMEOUT IN LOOP 2");
                     //delay(3000);
@@ -315,7 +316,7 @@ void clientCom(lon_lat_32 start, lon_lat_32 end) {
         }
         if (timeout) {
             status_message("PROGRAM TIMEOUT");
-            delay(3000);
+            //delay(3000);
             //draw = true;
             //break;
             Serial.flush();
@@ -423,6 +424,11 @@ int main() {
       // TODO: draw the route if there is one
       if (draw) {
         drawWaypoints();
+        if (curr_mode == WAIT_FOR_START) {
+            status_message("FROM?");
+        } else if(curr_mode == WAIT_FOR_STOP) {
+            status_message("TO?");
+        }
       }
     }
   }
