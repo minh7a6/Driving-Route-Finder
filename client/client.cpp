@@ -73,6 +73,7 @@ void setup() {
   status_message("FROM?");
 }
 
+
 void process_input() {
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 The process_input function takes no parameters.
@@ -208,6 +209,8 @@ occured.
         }
     }
 }
+
+
 void sendRequest(lon_lat_32 start, lon_lat_32 end) {
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 The sendRequest function takes the parameters:
@@ -232,6 +235,7 @@ Arduino to the server.
     Serial.flush();
 }
 
+
 void sendAck() {
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 The sendAck function takes no parameters.
@@ -243,6 +247,7 @@ The point of this function is to send an acknowledgement to the server.
     // send the A character followed by a newline
     Serial.println("A");
 }
+
 
 bool checkTimeout(bool timeout, uint32_t time, uint32_t startTime) {
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -267,6 +272,7 @@ given startTime. If so timeout is set to true and returned.
     }
     return timeout;
 }
+
 
 void clientCom(lon_lat_32 start, lon_lat_32 end) {
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -401,7 +407,7 @@ int main() {
         curr_mode = WAIT_FOR_STOP;
         status_message("TO?");
 
-        delay(500);  // handling button bounce
+        delay(200);  // handling button bounce
         // wait until the joystick button is no longer pushed
         while (digitalRead(clientpins::joy_button_pin) == LOW) {}
       } else {
@@ -412,7 +418,6 @@ int main() {
         clientCom(start, end);  // running client communication
 
         if (draw) {
-          status_message("drawing...");
           drawWaypoints();
         }
         status_message("FROM?");
@@ -422,7 +427,7 @@ int main() {
         // start point of a new request
         curr_mode = WAIT_FOR_START;
 
-        delay(500);  // handling button bounce
+        delay(200);  // handling button bounce
         // wait until the joystick button is no longer pushed
         while (digitalRead(clientpins::joy_button_pin) == LOW) {}
       }

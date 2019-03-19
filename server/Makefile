@@ -38,6 +38,7 @@ clean:
 # printing out the makefile target objectives
 help:
 	@echo 'make server    : builds the project and generates the server executable'
+	@echo 'make serialport.o : compiles serialport.cpp into its respective object (.o) file'
 	@echo 'make digraph.o : compiles digraph.cpp into its respective object (.o) file'
 	@echo 'make dijkstra.o: compiles dijkstra.cpp into its respective object (.o) file'
 	@echo 'make server.o  : compiles server.cpp into its respective object (.o) file'

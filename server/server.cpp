@@ -50,7 +50,8 @@ two points passed into the function.
     return dist;
 }
 
-
+// This is a modified implementation of split from:
+// https://www.fluentcpp.com/2017/04/21/how-to-split-a-string-in-c/
 vector<string> split(string str, char delim) {
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 The split function takes the parameters:
@@ -273,6 +274,7 @@ by sending the number of waypoints and the waypoints themselves.
         }
     }
 }
+
 
 int main() {
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *

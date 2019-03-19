@@ -64,7 +64,7 @@ Wiring Instructions:
               SW              Pin 8
 
 Makefile (server) Targets:
-  * make server      : builds the project and generates the server executable
+  * make (server)      : builds the project and generates the server executable
   * make serialport.o: compiles serialport.cpp into its respective object (.o) file
   * make digraph.o   : compiles digraph.cpp into its respective object (.o) file
   * make dijkstra.o  : compiles dijkstra.cpp into its respective object (.o) file
