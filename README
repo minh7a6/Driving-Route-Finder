@@ -73,7 +73,11 @@ Makefile (server) Targets:
   * make help        : prints out information about the targets of the make file
 
 Running Instructions:
-    In order to correctly run the program, navigate to the correct directory in terminal with the source files. Proceed to navigate into the client directory, and use the command 'make upload' to upload the program to the Arduino. Then, proceed to navigate to the server directory and use the command 'make' to build the project. Then use the command './server' in order to run the server executable, and allow the server to come online.
+    In order to correctly run the program, navigate to the correct directory in terminal with the source files. 
+    Client:
+      Proceed to the client directory, and use the command 'make upload' to upload the program to the Arduino. 
+    Server:
+      Then, proceed to the server directory and use the command 'make' to build the project. Then use the command './server' in order to run the server executable, and allow the server to come online.
 
 How to use:
     Once the program is uploaded to the Arduino and the server is brought online,the following user actions are allowed:
