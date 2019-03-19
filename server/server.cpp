@@ -22,7 +22,6 @@ program will find the shortest path and print out the waypoints along the way.
 #include <sstream>
 #include <cassert>
 
-bool timeout = false;
 
 SerialPort port("/dev/ttyACM0");
 struct Point {
@@ -172,6 +171,10 @@ lat and lon values, enroute to the end vertex.
         route.push(vert);  // push the vertex onto the stack
         vert = tree[vert].second;  // set the vertex to the parent of current
     }
+    if (route.size() > 500) {
+        port.writeline("N 0\n");
+        return false;
+    }
     cout << "N " << route.size() << endl;  // print out number of waypoints
     port.writeline("N ");
     temp = to_string(route.size());
@@ -180,11 +183,11 @@ lat and lon values, enroute to the end vertex.
     port.writeline("\n");  // write line does not include new line character
     int size = route.size();
     for (int i = 0; i < size; i++) {
-        //cin >> ack;  // receive acknowledgement
-        do {
-            ack = port.readline(1000);
-            //cout << ack << "." << endl;
-        } while(ack != "A\n");
+        // receive acknowledgement
+        ack = port.readline(1000);
+        if (ack == "") {
+            return true;
+        }
         cout << "ack received!" << endl;
         if (ack[0] == 'A') {
             cout << endl;
@@ -199,7 +202,6 @@ lat and lon values, enroute to the end vertex.
             cout << "lon being written: " << temp << endl;
             assert(port.writeline(temp));
             assert(port.writeline("\n"));
-            //cout << p[route.top()].lon << endl;
             route.pop();  // removing the element from the stack
         } else {
             // timeout
@@ -207,21 +209,20 @@ lat and lon values, enroute to the end vertex.
             return true;
         }
     }
-    //cin >> ack;  // receive acknowledgement
+    // receive acknowledgement
     ack = port.readline(1000);
+    if (ack == "") {
+        return true;
+    }
     if (ack[0] == 'A') {
         port.writeline("E\n");
     } else {
         return true;
     }
-    //cout << "E" << endl;  // indicating end of request
+    // indicating end of request
     return false;  // no timeout
 }
 
-
-// two issues:
-// client stays at "no path" state
-// server not reading properly first time around...
 
 int main() {
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -234,66 +235,46 @@ along with handling some of the input and output functionality.
     cout << endl << "graph constructed" << endl;
     while(true) {
         cout << "server starting" << endl;
-        timeout = false;
-        while (!timeout) {
-            cout << "no timeout yet..." << endl;
-            cout << "------------------------------------------------" << endl;
-            // string splitting method found from: 
-            // geeksforgeeks.org/boostsplit-c-library/
-            //cin >> r;  // read in R character
-            string temp;
-            int i = 0;
-            /*
-            if ()
-            temp = port.readline(0);
-            cout << "first read done" << endl;
-            while (temp[0] != 'R') {
-                temp = port.readline(0);
-                //cout << temp << " "<< i << endl;
-                i++;
-            }
-            cout << "finished" << endl;
-            */
-            do {
-                temp = port.readline(1000);
-                //cout << "iteration: " << i << endl;
-                i++;
-            } while(temp[0] != 'R');
+        bool timeout = false;
+        cout << "------------------------------------------------" << endl;
+        // string splitting method found from: 
+        // geeksforgeeks.org/boostsplit-c-library/
+        // read in R character
+        string temp;
+        temp = port.readline(0);
+        if (temp[0] == 'R') {
             vector<string> request = split(temp, ' ');  // find citation later...
-            //cout << "split the input" << endl;
-            //cout << request[0] << endl;
-            if (request[0] == "R") {
-                cout << "reading coordinates..." << endl;
-                cout << endl;
-                cout << "request array: " << request[0] << " " << request[1] << " " << request[2] <<  " " << request[3];
-                cout << " " << request[4] << endl << endl;
-                ll startLat, startLon, endLat, endLon;
-                //cin >> startLat >> startLon >> endLat >> endLon;  // read in the coordinates
-                //cout << request[1] << endl;
-                startLat = stoll(request[1]);
-                cout << "start lat: " << request[1] << endl;
-                startLon = stoll(request[2]);
-                cout << "start lon: " << request[2] << endl;
-                endLat = stoll(request[3]);
-                cout << "end lat: " << request[3] << endl;
-                endLon = stoll(request[4]);
-                cout << "end lon: " << request[4] << endl << endl;;
-                int start = closestVert(startLat, startLon, points);  // map to vertex
-                int end = closestVert(endLat, endLon, points);  // map to vertex
-                unordered_map<int, PLI> heapTree;
-                dijkstra(graph, start, heapTree);
-                cout << "DICKSTRA outcome:" << endl;
-                if (heapTree.find(end) == heapTree.end()) {
-                    /* handling the 0 case */
-                    cout << "N 0" << endl;
-                    assert(port.writeline("N 0\n"));
-                    // do we do an E????????
-                    //cout << "E" << endl;
-                } else {
-                    /* print out the waypoints enroute to the destination */
-                    timeout = printWaypoints(points, heapTree, start, end);
+            cout << "reading coordinates..." << endl;
+            cout << endl;
+            cout << "request array: " << request[0] << " " << request[1] << " " << request[2] <<  " " << request[3];
+            cout << " " << request[4] << endl << endl;
+            ll startLat, startLon, endLat, endLon;
+            // read in the coordinates
+            //cout << request[1] << endl;
+            startLat = stoll(request[1]);
+            cout << "start lat: " << request[1] << endl;
+            startLon = stoll(request[2]);
+            cout << "start lon: " << request[2] << endl;
+            endLat = stoll(request[3]);
+            cout << "end lat: " << request[3] << endl;
+            endLon = stoll(request[4]);
+            cout << "end lon: " << request[4] << endl << endl;;
+            int start = closestVert(startLat, startLon, points);  // map to vertex
+            int end = closestVert(endLat, endLon, points);  // map to vertex
+            unordered_map<int, PLI> heapTree;
+            dijkstra(graph, start, heapTree);
+            cout << "DICKSTRA outcome:" << endl;
+            if (heapTree.find(end) == heapTree.end()) {
+                /* handling the 0 case */
+                cout << "N 0" << endl;
+                assert(port.writeline("N 0\n"));
+            } else {
+                /* print out the waypoints enroute to the destination */
+                timeout = printWaypoints(points, heapTree, start, end);
+                if (!timeout){
                     cout << "sent waypoints to client" << endl << endl;
-                    break;
+                } else {
+                    cout << "failed to send waypoints" << endl << endl;
                 }
             }
         }

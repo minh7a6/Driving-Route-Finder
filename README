@@ -15,7 +15,6 @@ Included files:
       * serialport.cpp
       * serialport.h
       * Makefile
-      * README
     */client
       * client.cpp
       * consts_and_types.h
@@ -25,6 +24,7 @@ Included files:
       * map_drawing.cpp
       * map_drawing.h
       * Makefile
+    * README
 
 Makefile (server) Targets:
   * make server      : builds the project and generates the server executable
@@ -46,7 +46,7 @@ How to use:
         * The request will then send to the server side, and a line will be displayed onto the screen, indicating the route to follow to get to your destination!
 
 Notes and Assumptions:
-    This program assumes that the user will follow the exact input guidelines as shown above. This program is also designed to only process one request, to process another request you must restart the program. The user must also have the file 'edmonton-roads-2.0.1.txt' in the same directory as the project files. This file must be a CSV file.
+    This program assumes that the user will follow the exact input guidelines as shown above. This program is also designed to only process one request, to process another request you must restart the program. The user must also have the file 'edmonton-roads-2.0.1.txt' in the same directory as the project files. This file must be a CSV file. The user must also strictly follow the running instructions stated above. In this case where the server is running before the program is uploaded to the Arduino, the compiler process will timeout. Also, the user must not access serial-mon at any time as it affects the data trasnfer between the client and server programs.
 
 Modified Code:
   server.cpp:
