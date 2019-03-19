@@ -52,17 +52,29 @@ two points passed into the function.
 
 
 vector<string> split(string str, char delim) {
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+The split function takes the parameters:
+    str: the string to be split
+    delim: the delimiter for splitting
+
+It returns the parameters:
+    vector<string>: a vector containing the string split up
+
+The point of this function is to split the given string by the given delimiter
+abd return it as a vector.
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
     vector<string> temp;
     stringstream ss(str);
     string token;
-    while(getline(ss, token, delim)) {
+    while (getline(ss, token, delim)) {
         temp.push_back(token);
     }
     return temp;
 }
 
 
-void readGraph(string filename, WDigraph& graph, unordered_map<int, Point>& points) {
+void readGraph(string filename, WDigraph& graph,
+    unordered_map<int, Point>& points) {
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 The readGraph function takes the parameters:
     filename: name of the CSV file describing the road network
@@ -139,7 +151,7 @@ passed in lat and lon values.
     point.lon = lon;  // assign lon parameter to struct
     int vert = p.begin()->first;  // set starting vertex to the first one
     dist = manhattan(p[vert], point);  // initialize the distance
-    for (auto i: p) {
+    for (auto i : p) {
         temp = manhattan(i.second, point);  // calculate temp distance
         if (temp < dist) {  // if that distance is less than previous...
             vert = i.first;  // set the vertex to the current iteration
@@ -178,7 +190,6 @@ lat and lon values, enroute to the end vertex.
     cout << "N " << route.size() << endl;  // print out number of waypoints
     port.writeline("N ");
     temp = to_string(route.size());
-    //cout << "size being written: " << temp << endl;
     port.writeline(temp);
     port.writeline("\n");  // write line does not include new line character
     int size = route.size();
@@ -190,7 +201,8 @@ lat and lon values, enroute to the end vertex.
         if (ack[0] == 'A') {
             cout << endl;
             /*print out the waypoint coordinates*/
-            cout << "W " << p[route.top()].lat << " " << p[route.top()].lon << endl;
+            cout << "W " << p[route.top()].lat << " " << p[route.top()].lon;
+            cout << endl;
             assert(port.writeline("W "));
             temp = to_string(p[route.top()].lat);
             assert(port.writeline(temp));
@@ -221,6 +233,16 @@ lat and lon values, enroute to the end vertex.
 
 
 void processRequest(WDigraph graph, unordered_map<int, Point> points) {
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+The processRequest function takes the parameters:
+    graph: the Digraph created from the csv file
+    points: the points for each vertex
+
+It returns no parameters.
+
+The point of this function is to process the communication with the Arduino
+by sending the number of waypoints and the waypoints themselves.
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
     bool timeout = false;
     string temp = port.readline(0);
     if (temp[0] == 'R') {
@@ -237,7 +259,6 @@ void processRequest(WDigraph graph, unordered_map<int, Point> points) {
         int end = closestVert(endLat, endLon, points);  // map to vertex
         unordered_map<int, PLI> heapTree;
         dijkstra(graph, start, heapTree);
-        //cout << "DICKSTRA outcome:" << endl;
         if (heapTree.find(end) == heapTree.end()) {
             /* handling the 0 case */
             cout << "N 0" << endl;
@@ -245,7 +266,7 @@ void processRequest(WDigraph graph, unordered_map<int, Point> points) {
         } else {
             /* print out the waypoints enroute to the destination */
             timeout = printWaypoints(points, heapTree, start, end);
-            if (!timeout){
+            if (!timeout) {
                 cout << "sent waypoints to client" << endl << endl;
             } else {
                 cout << "failed to send waypoints" << endl << endl;
@@ -263,7 +284,7 @@ along with handling some of the input and output functionality.
     unordered_map<int, Point> points;
     readGraph("edmonton-roads-2.0.1.txt", graph, points);
     cout << endl << "graph constructed" << endl;
-    while(true) {
+    while (true) {
         processRequest(graph, points);
     }
     return 0;

@@ -17,8 +17,6 @@ also communicates with the server side and draws the route between the points.
 #include "consts_and_types.h"
 #include "map_drawing.h"
 
-typedef unsigned long long ull;
-
 shared_vars shared;
 
 Adafruit_ILI9341 tft = Adafruit_ILI9341(clientpins::tft_cs, clientpins::tft_dc);
@@ -42,7 +40,7 @@ void setup() {
 
   // initialize serial port
   Serial.begin(9600);
-  Serial.flush(); // get rid of any leftover bits
+  Serial.flush();  // get rid of any leftover bits
 
   // initially no path is stored
   shared.num_waypoints = 0;
@@ -51,7 +49,7 @@ void setup() {
   shared.tft = &tft;
   shared.tft->begin();
   shared.tft->setRotation(3);
-  shared.tft->fillScreen(ILI9341_BLUE); // so we know the map redraws properly
+  shared.tft->fillScreen(ILI9341_BLUE);  // so we know the map redraws properly
 
   // initialize SD card
   if (!SD.begin(clientpins::sd_cs)) {
@@ -59,8 +57,7 @@ void setup() {
       Serial.println("* Is a card inserted properly?");
       Serial.println("* Is your wiring correct?");
       Serial.println("* Is the chipSelect pin the one for your shield or module?");
-
-      while (1) {} // nothing to do here, fix the card issue and retry
+      while (1) {}  // nothing to do here, fix the card issue and retry
   }
 
   // initialize the shared variables, from map_drawing.h
@@ -77,6 +74,14 @@ void setup() {
 }
 
 void process_input() {
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+The process_input function takes no parameters.
+
+It returns no parameters:
+
+The point of this function is to process the input from the joystick and the
+buttons.
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
   // read the zoom in and out buttons
   shared.zoom_in_pushed = (digitalRead(clientpins::zoom_in_pin) == HIGH);
   shared.zoom_out_pushed = (digitalRead(clientpins::zoom_out_pin) == HIGH);
@@ -92,9 +97,8 @@ void process_input() {
   xy_pos delta(
     // the funny x/y swap is because of our joystick orientation
     (analogRead(clientpins::joy_y_pin)-shared.joy_centre.x)/step,
-    (analogRead(clientpins::joy_x_pin)-shared.joy_centre.y)/step
-  );
-  delta.x = -delta.x; // horizontal axis is reversed in our orientation
+    (analogRead(clientpins::joy_x_pin)-shared.joy_centre.y)/step);
+  delta.x = -delta.x;  // horizontal axis is reversed in our orientation
 
   // check if there was enough movement to move the cursor
   if (delta.x != 0 || delta.y != 0) {
@@ -112,10 +116,16 @@ void process_input() {
 
 
 void drawWaypoints() {
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+The drawWaypoints function takes no parameters.
 
+It returns no parameters.
+
+The point of this function is to draw the given waypoints on the arduino
+according to their coordinates.
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
     // for the number of waypoints...
     for (int i = 0; i < shared.num_waypoints - 1; i++) {
-
         int8_t num = shared.map_number;  // current zoom elevel
 
         /*Get two points*/
@@ -123,11 +133,13 @@ void drawWaypoints() {
         lon_lat_32 p2 = shared.waypoints[i + 1];
 
         /*Configure the points*/
-        xy_pos p1_loc = xy_pos(longitude_to_x(num, p1.lon), latitude_to_y(num, p1.lat));
+        xy_pos p1_loc = xy_pos(longitude_to_x(num, p1.lon),
+          latitude_to_y(num, p1.lat));
         p1_loc.x -= shared.map_coords.x;
         p1_loc.y -= shared.map_coords.y;
 
-        xy_pos p2_loc = xy_pos(longitude_to_x(num, p2.lon), latitude_to_y(num, p2.lat));
+        xy_pos p2_loc = xy_pos(longitude_to_x(num, p2.lon),
+          latitude_to_y(num, p2.lat));
         p2_loc.x -= shared.map_coords.x;
         p2_loc.y -= shared.map_coords.y;
 
@@ -135,7 +147,6 @@ void drawWaypoints() {
         // draw the line from one point to the other
         shared.tft->drawLine(p1_loc.x, p1_loc.y, p2_loc.x,
                              p2_loc.y, ILI9341_BLUE);
-
     }
 }
 
@@ -144,16 +155,25 @@ void drawWaypoints() {
  * and finishing with the most significant byte. 
  */
 String read_num() {
-  String word = "";
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+The read_num function takes no parameters.
+
+It returns the parameters:
+    num: the num read in from the serial monitor
+
+The point of this function is to read a number from the serial monitor and
+return it once a newline character is reached.
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+  String num = "";
   char byte;
 
-  while(true) {
+  while (true) {
     if (Serial.available()) {
         byte = Serial.read();  // take in a byte
         if (byte != '\n') {  // if newline is taken in, break
-            word += byte;
+            num += byte;
         } else {
-            return word;  // return the buffer
+            return num;  // return the buffer
         }
     }
   }
@@ -161,11 +181,21 @@ String read_num() {
 
 
 String readWaypoint(uint32_t timeout) {
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+The readWaypoint function takes the parameters:
+    timeout: the time required for a timeout
+
+It returns the parameters:
+    word: the waypoint read in from serial mon
+
+The point of this function is to read in the waypoint and determine if a timeout
+occured.
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
     String word = "";
     char byte;
     uint32_t start = millis();  // start timer
 
-    while(true) {
+    while (true) {
         if (Serial.available()) {
             byte = Serial.read();  // read in a byte
             if (byte != '\n' && byte != ' ') {
@@ -179,6 +209,16 @@ String readWaypoint(uint32_t timeout) {
     }
 }
 void sendRequest(lon_lat_32 start, lon_lat_32 end) {
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+The sendRequest function takes the parameters:
+    start: the starting point
+    end: the ending point
+
+It returns no parameters.
+
+The point of this function is to send the starting and ending points from the
+Arduino to the server.
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
     Serial.flush();
     Serial.print("R ");
     Serial.print(start.lat);
@@ -193,6 +233,13 @@ void sendRequest(lon_lat_32 start, lon_lat_32 end) {
 }
 
 void sendAck() {
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+The sendAck function takes no parameters.
+
+It returns no parameters.
+
+The point of this function is to send an acknowledgement to the server.
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
     // send the A character followed by a newline
     Serial.println("A");
 }
@@ -210,13 +257,21 @@ bool checkTimeout(bool timeout, uint32_t time, uint32_t startTime) {
 }
 
 void clientCom(lon_lat_32 start, lon_lat_32 end) {
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+The clientCom function takes the parameters.
+    start: the starting point
+    end: the end point
+
+It returns no parameters.
+
+The point of this function is to process the communication between the Arduino
+and the server. It reads in the waypoints and stores them in shared.waypoints.
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
     status_message("Receiving path...");  // indicate to user that we are
                                           // calculating path
     while (true) {
         draw = false;
         bool timeout = false;
-    // TODO: communicate with the server to get the waypoints
-
         uint32_t startTime = millis();
         while (!timeout && !Serial.available()) {
             sendRequest(start, end);  // send the request
@@ -224,7 +279,7 @@ void clientCom(lon_lat_32 start, lon_lat_32 end) {
         }
         // store path length in shared.num_waypoints
         if (Serial.available() && !timeout) {
-            // string splitting method found from: 
+            // string splitting method found from:
             // geeksforgeeks.org/boostsplit-c-library/
             char letter;
             letter = Serial.read();  // read in the letter
@@ -269,7 +324,7 @@ void clientCom(lon_lat_32 start, lon_lat_32 end) {
             startTime = millis();
             timeout = checkTimeout(timeout, 1000, startTime);
 
-            if (Serial.available() && !timeout){
+            if (Serial.available() && !timeout) {
                 char endChar = Serial.read();
                 if (endChar != 'E') {
                     // send request again with the same point
@@ -290,6 +345,7 @@ void clientCom(lon_lat_32 start, lon_lat_32 end) {
 
 
 int main() {
+  // This is the main function of the program.
   setup();
 
   // very simple finite state machine:
@@ -319,15 +375,13 @@ int main() {
     if (shared.zoom_in_pushed) {
       zoom_map(1);
       shared.redraw_map = 1;
-    }
-    else if (shared.zoom_out_pushed) {
+    } else if (shared.zoom_out_pushed) {
       zoom_map(-1);
       shared.redraw_map = 1;
     }
 
     // if the joystick button was clicked
     if (shared.joy_button_pushed) {
-
       if (curr_mode == WAIT_FOR_START) {
         // if we were waiting for the start point, record it
         // and indicate we are waiting for the end point
@@ -338,8 +392,7 @@ int main() {
         delay(500);  // handling button bounce
         // wait until the joystick button is no longer pushed
         while (digitalRead(clientpins::joy_button_pin) == LOW) {}
-      }
-      else {
+      } else {
         // if we were waiting for the end point, record it
         // and then communicate with the server to get the path
         end = get_cursor_lonlat();
@@ -350,8 +403,6 @@ int main() {
           status_message("drawing...");
           drawWaypoints();
         }
-        //status_message("DONE DRAWING");
-        //delay(3000);
         status_message("FROM?");
         // now we have stored the path length in
         // shared.num_waypoints and the waypoints themselves in
@@ -362,7 +413,6 @@ int main() {
         delay(500);  // handling button bounce
         // wait until the joystick button is no longer pushed
         while (digitalRead(clientpins::joy_button_pin) == LOW) {}
-
       }
     }
 
@@ -370,21 +420,18 @@ int main() {
       // redraw the correct status message
       if (curr_mode == WAIT_FOR_START) {
         status_message("FROM?");
-      }
-      else {
+      } else {
         status_message("TO?");
       }
 
       // redraw the map and cursor
       draw_map();
       draw_cursor();
-      
-      // TODO: draw the route if there is one
       if (draw) {
         drawWaypoints();
         if (curr_mode == WAIT_FOR_START) {
             status_message("FROM?");
-        } else if(curr_mode == WAIT_FOR_STOP) {
+        } else if (curr_mode == WAIT_FOR_STOP) {
             status_message("TO?");
         }
       }
