@@ -7,7 +7,7 @@ A route finder where the user can indicate a start and end point anywhere in the
 - Banana plug wires
 - Joystick Component
 - 2 button components
-- 2 brown band resistors
+- 2 10k resistors
 - Adafruit TFT display
 ### Wiring Instructions
 | Display Pins | Arduino Pins |
