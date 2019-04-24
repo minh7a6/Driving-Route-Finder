@@ -45,7 +45,7 @@ make && ./server
 ```
 The server will be brought online and the program will be running.
 ## How to Use
-Once the program is uplaoded to the Arduino and the server is brought online, the following user actions are permitted:
+Once the program is uploaded to the Arduino and the server is brought online, the following user actions are permitted:
 - The user can use the *joystick* to move the cursor on the screen, and also press the zoom in/out buttons to scale the map.
 - The user will be prompted with the text "**FROM?**" at the bottom of the screen, indicating that it is waiting for the starting point.
 - To *select* a point, **click the joystick**.
